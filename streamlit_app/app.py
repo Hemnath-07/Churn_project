@@ -17,7 +17,7 @@ import seaborn as sns
 st.set_page_config(page_title="Churn Prediction Dashboard", layout="wide")
 
 # Load trained model
-model = joblib.load("model.pkl")
+model = joblib.load(""streamlit_app/model.pkl"")
 
 st.title("📉 Customer Churn Prediction Dashboard")
 
