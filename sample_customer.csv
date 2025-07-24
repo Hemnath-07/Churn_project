@@ -1,0 +1,16 @@
+CustomerID,Tenure,MonthlyCharges,TotalCharges,Contract,PaymentMethod,SupportTickets,UsageFrequency,Churn
+1001,12,45.0,540.0,Month-to-month,Credit card,1,5,0
+1002,24,70.0,1680.0,Two year,Electronic check,0,8,0
+1003,2,80.5,161.0,Month-to-month,Electronic check,3,2,1
+1004,36,60.0,2160.0,One year,Bank transfer,0,10,0
+1005,1,90.0,90.0,Month-to-month,Electronic check,2,1,1
+1006,6,65.0,390.0,Month-to-month,Credit card,1,4,0
+1007,18,55.0,990.0,One year,Credit card,0,7,0
+1008,3,85.0,255.0,Month-to-month,Electronic check,4,3,1
+1009,9,75.0,675.0,Month-to-month,Electronic check,2,6,0
+1010,15,60.0,900.0,One year,Bank transfer,1,6,0
+1011,2,95.0,190.0,Month-to-month,Electronic check,3,2,1
+1012,7,50.0,350.0,Month-to-month,Credit card,1,4,0
+1013,1,100.0,100.0,Month-to-month,Electronic check,5,1,1
+1014,20,68.0,1360.0,Two year,Bank transfer,0,9,0
+1015,8,72.0,576.0,Month-to-month,Credit card,2,5,0
