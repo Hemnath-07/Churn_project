@@ -110,7 +110,7 @@ def generate_dummy_artifacts(model_dir):
 
     # Dummy Model
     dummy_model = RandomForestClassifier(n_estimators=10, random_state=42)
-    joblib.dump(dummy_model, os.path.join(model_dir, 'churn_prediction_model.joblib'))
+    joblib.dump(dummy_model, os.path.join(model_dir, 'churn_model_optimized.pkl'))
 
     # Dummy Scaler
     dummy_scaler = StandardScaler()
