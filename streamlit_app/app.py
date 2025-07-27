@@ -7,69 +7,53 @@ Original file is located at
     https://colab.research.google.com/drive/1736sNir0Ch9iboJrypdzMvQQSlESlu-d
 """
 
-# app.py
 import streamlit as st
 import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(page_title="Churn Prediction Dashboard", layout="wide")
+# 🎯 Load model + transformers
+model = joblib.load("churn_model.pkl")
+scaler = joblib.load("scaler.pkl")
+imputer = joblib.load("imputer.pkl")
+model_columns = joblib.load("columns.pkl")
 
-# Load trained model
-model = joblib.load("streamlit_app/churn_model_optimized.pkl")
+st.set_page_config(page_title="Universal Churn Predictor", layout="wide")
+st.title("📉 Universal Customer Churn Prediction Dashboard")
 
-st.title("📉 Customer Churn Prediction Dashboard")
-
-# Upload CSV file
-uploaded_file = st.file_uploader("📤 Upload your customer data CSV", type=["csv"])
+uploaded_file = st.file_uploader("📂 Upload your customer CSV file", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    st.subheader("📄 Uploaded Dataset")
+    st.success("✅ File uploaded!")
+
+    # Show preview
+    st.dataframe(df.head())
+
+    # Process file
+    raw_input = pd.get_dummies(df)
+    for col in model_columns:
+        if col not in raw_input:
+            raw_input[col] = 0  # add missing
+
+    raw_input = raw_input[model_columns]  # align column order
+    imputed = imputer.transform(raw_input)
+    scaled = scaler.transform(imputed)
+
+    # Predict
+    predictions = model.predict(scaled)
+    df['Predicted Churn'] = predictions
+
+    # 📊 Visualizations
+    st.subheader("🔍 Churn Prediction Breakdown")
     st.dataframe(df)
 
-    # Churn Analytics Section
-    if 'Churn' in df.columns:
-        st.subheader("📊 Churn Analytics")
+    st.subheader("📊 Churn Distribution Pie Chart")
+    pie_data = df['Predicted Churn'].value_counts()
+    fig1, ax1 = plt.subplots()
+    ax1.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=90, colors=["skyblue", "lightcoral"])
+    ax1.axis('equal')
+    st.pyplot(fig1)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Total Customers", len(df))
-            st.metric("Churned", df['Churn'].sum())
-            st.metric("Churn Rate", f"{df['Churn'].mean()*100:.2f}%")
-        with col2:
-            fig, ax = plt.subplots()
-            df['Churn'].value_counts().plot.pie(
-                autopct='%1.1f%%',
-                labels=['Retained', 'Churned'],
-                colors=['lightgreen', 'salmon'],
-                ax=ax
-            )
-            ax.set_ylabel('')
-            st.pyplot(fig)
-
-    # Prediction Section
-    st.subheader("🔮 Predict Customer Churn")
-
-    # Prepare features (drop CustomerID, Churn; encode categoricals)
-    features = df.drop(columns=['CustomerID', 'Churn'], errors='ignore')
-    features_encoded = pd.get_dummies(features)
-
-    # Ensure same columns as training data
-    model_input_cols = model.feature_names_in_  # scikit-learn >=1.0
-    for col in model_input_cols:
-        if col not in features_encoded.columns:
-            features_encoded[col] = 0
-    features_encoded = features_encoded[model_input_cols]
-
-    # Make predictions
-    predictions = model.predict(features_encoded)
-    df['Predicted_Churn'] = predictions
-
-    st.write("✅ Prediction Results")
-    st.dataframe(df)
-
-    # Download CSV with predictions
-    csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("⬇️ Download Predicted Data", data=csv, file_name='churn_predictions.csv', mime='text/csv')
+    st.download_button("⬇️ Download Predictions CSV", df.to_csv(index=False), "predictions.csv")
