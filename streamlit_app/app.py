@@ -13,11 +13,11 @@ import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# 🎯 Load model + transformers
-model = joblib.load("churn_model.pkl")
-scaler = joblib.load("scaler.pkl")
-imputer = joblib.load("imputer.pkl")
-model_columns = joblib.load("columns.pkl")
+# Load saved model and preprocessing tools
+model = joblib.load("streamlit_app/churn_model.pkl")
+scaler = joblib.load("streamlit_app/scaler.pkl")
+imputer = joblib.load("streamlit_app/imputer.pkl")
+model_columns = joblib.load("streamlit_app/columns.pkl")
 
 st.set_page_config(page_title="Universal Churn Predictor", layout="wide")
 st.title("📉 Universal Customer Churn Prediction Dashboard")
@@ -28,32 +28,40 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.success("✅ File uploaded!")
 
-    # Show preview
+    st.subheader("🧾 Preview of Uploaded Data")
     st.dataframe(df.head())
 
-    # Process file
-    raw_input = pd.get_dummies(df)
-    for col in model_columns:
-        if col not in raw_input:
-            raw_input[col] = 0  # add missing
+    # Drop target if present
+    possible_targets = ['churn', 'Churn', 'target']
+    for col in df.columns:
+        if col.lower() in [t.lower() for t in possible_targets]:
+            df.drop(columns=[col], inplace=True)
 
-    raw_input = raw_input[model_columns]  # align column order
-    imputed = imputer.transform(raw_input)
+    # Encode input to match model
+    input_data = pd.get_dummies(df)
+    for col in model_columns:
+        if col not in input_data:
+            input_data[col] = 0  # add missing columns
+
+    input_data = input_data[model_columns]  # reorder
+    imputed = imputer.transform(input_data)
     scaled = scaler.transform(imputed)
 
     # Predict
     predictions = model.predict(scaled)
     df['Predicted Churn'] = predictions
 
-    # 📊 Visualizations
-    st.subheader("🔍 Churn Prediction Breakdown")
+    # Show prediction results
+    st.subheader("📋 Prediction Results")
     st.dataframe(df)
 
-    st.subheader("📊 Churn Distribution Pie Chart")
+    # Pie chart for churn distribution
+    st.subheader("📊 Churn Prediction Breakdown")
     pie_data = df['Predicted Churn'].value_counts()
     fig1, ax1 = plt.subplots()
     ax1.pie(pie_data, labels=pie_data.index, autopct='%1.1f%%', startangle=90, colors=["skyblue", "lightcoral"])
     ax1.axis('equal')
     st.pyplot(fig1)
 
+    # Download results
     st.download_button("⬇️ Download Predictions CSV", df.to_csv(index=False), "predictions.csv")
